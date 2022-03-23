@@ -7,8 +7,7 @@ const GET_CHALLENGE = `
   }
 `;
 
-export const generateChallenge = (address) => {
-	console.log('address ni siya', address);
+export const generateChallenge = (address: string) => {
 	return apolloClient.query({
 		query: gql(GET_CHALLENGE),
 		variables: {

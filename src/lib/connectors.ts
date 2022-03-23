@@ -1,7 +1,6 @@
-import { chain, defaultChains } from 'wagmi';
+import { defaultChains } from 'wagmi';
 import { InjectedConnector } from 'wagmi/connectors/injected';
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect';
-import { WalletLinkConnector } from 'wagmi/connectors/walletLink';
 
 // Chains for connectors to support
 const chains = defaultChains;
