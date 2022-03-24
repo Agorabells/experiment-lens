@@ -4,6 +4,8 @@ import { SiweMessage } from 'siwe';
 import { shortAddress } from '../lib/helpers';
 import { generateChallenge } from '../lib/generate-challenge';
 import { authenticate } from '../lib/authenticate';
+import { verify } from '../lib/verify';
+import { signText, getSignerAddress } from '../lib/ethers.service';
 
 export default function Login() {
 	const [{ data: connectData }, connect] = useConnect();
@@ -15,9 +17,11 @@ export default function Login() {
 			try {
 				const res = await connect(connector); // connect from useConnect
 				if (!res.data) throw res.error ?? new Error('Something went wrong');
-
+				const address = await getSignerAddress();
 				// generate challenges from life
-				const challengeRes = await generateChallenge(res.data.account);
+				console.log("generate challenges from life");
+				const challengeRes = await generateChallenge(address);
+				console.log("challengeRes",challengeRes);
 
 				const nonceRes = await fetch('/api/nonce');
 				const message = new SiweMessage({
@@ -30,25 +34,32 @@ export default function Login() {
 					nonce: await nonceRes.text()
 				});
 
-				const signer = await connector.getSigner();
-				const signature = await signer.signMessage(message.prepareMessage());
-
+				// const signer = await connector.getSigner();
+				// const signature = await signer.signMessage(message.prepareMessage());
+				const signature = await signText(message.prepareMessage());
+				console.log("signature",signature,address);
 				// error pa gyud
-				const accessTokens = await authenticate(res.data.account, signature);
+				const accessTokens = await authenticate(address, signature);
 
-				console.log(accessTokens, signature, '@@@@@@@@@@@@@@@@@@@@');
+				console.log("success accessTokens",accessTokens, signature, '@@@@@@@@@@@@@@@@@@@@');
+				// verify access token to lens protocol
+				 const verifyRes = await verify(accessTokens.data.authenticate.accessToken);
 
-				const verifyRes = await fetch('/api/verify', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({
-						message,
-						signature
-					})
-				});
-				if (!verifyRes.ok) throw new Error('Error verifying message');
+				// const verifyRes = await fetch('/api/verify', {
+				// 	method: 'POST',
+				// 	headers: {
+				// 		'Content-Type': 'application/json'
+				// 	},
+				// 	body: JSON.stringify({
+				// 		message,
+				// 		signature
+				// 	})
+				// });\
+				
+
+				 if (!verifyRes.data.verify) throw new Error('Error verifying message');
+				// else
+				 console.log("It worked! Access token is verified, TODO need to save accessToken in session");
 
 				// It worked! User is signed in with Ethereum
 			} catch (error) {
@@ -79,3 +90,5 @@ export default function Login() {
 		</div>
 	);
 }
+
+
