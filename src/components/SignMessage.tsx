@@ -46,7 +46,8 @@ export const SignMessage = () => {
 
 			setState((x) => ({ ...x, address, loading: false }));
 		} catch (error) {
-			setState((x) => ({ ...x, error, loading: false }));
+			// setState((x) => ({ ...x, error, loading: false }));
+			setState((x) => ({ ...x, loading: false }));
 		}
 	}, []);
 
